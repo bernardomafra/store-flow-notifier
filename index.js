@@ -1,4 +1,5 @@
 const amqp = require('amqplib/callback_api');
+const url = process.env.CLOUDAMQP_URL || 'amqp://localhost';
 
 function init(error, connection) {
   if (error) throw error;
@@ -27,4 +28,4 @@ function init(error, connection) {
   });
 }
 
-amqp.connect('amqp://localhost', init);
+amqp.connect(url, init);

@@ -13,17 +13,19 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '14.x'
+
       - name: Install dependencies
         run: npm install
+
       - name: Run test
         run: npm test
 
-      - name: Start RabbitMQ
-        uses: namoshek/rabbitmq-github-action@v1
-        with:
-          version: '3.8.9'
-          ports: '5672:5672 15672:15672'
-          container-name: 'store-flow-rabbitmq'
+      - name: Create .env file for Dependencies
+        run: |
+          cat >> .env << EOF
+          CLOUDAMQP_URL_IN_SECRETS: ${{ secrets.CLOUDAMQP }}
+          EOF
+          source .env
 
   deploy:
     runs-on: ubuntu-latest
