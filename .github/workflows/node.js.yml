@@ -3,9 +3,19 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    services:
+      rabbitmq:
+        image: rabbitmq:3.8
+        env:
+          RABBITMQ_DEFAULT_USER: guest
+          RABBITMQ_DEFAULT_PASS: guest
+        ports:
+          - 5672
 
     steps:
       - uses: actions/checkout@v2
@@ -17,13 +27,6 @@ jobs:
         run: npm install
       - name: Run test
         run: npm test
-
-      - name: Start RabbitMQ
-        uses: namoshek/rabbitmq-github-action@v1
-        with:
-          version: '3.8.9'
-          ports: '5672:5672 15672:15672'
-          container-name: 'store-flow-rabbitmq'
 
   deploy:
     runs-on: ubuntu-latest
