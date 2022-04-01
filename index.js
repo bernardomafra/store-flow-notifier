@@ -1,8 +1,15 @@
 const amqp = require('amqplib/callback_api');
 const url = process.env.CLOUDAMQP_URL || 'amqp://localhost';
 
-const httpServer = require('http').createServer();
-const io = require('socket.io')(httpServer);
+const express = require('express');
+const { Server } = require('ws');
+
+const PORT = process.env.PORT || 3000;
+const server = express().listen(PORT, () =>
+  console.log(`Listening on ${PORT}`),
+);
+
+const wss = new Server({ server });
 
 const users = [];
 
@@ -11,14 +18,7 @@ let user = {
   socket: null,
 };
 
-io.on('connection', (socket) => {
-  socket.on('disconnect', () => {
-    console.log('socket disconnected');
-  });
-  socket.on('teste', (t) => {
-    console.log(t);
-  });
-  console.log('connected');
+wss.on('connection', (socket) => {
   const userId = socket.handshake.query.userId;
   if (userId === user.id) {
     console.log(`User ${user.id} already connected, skipping...`);
@@ -30,15 +30,13 @@ io.on('connection', (socket) => {
   user.socket = socket;
   users.push(user);
   console.log('New user connected: ', user.id);
+
+  socket.on('close', () => console.log('Client disconnected'));
+  socket.on('disconnect', () => console.log('socket disconnected'));
 });
 
-io.on('disconnect', () => {
+wss.on('disconnect', () => {
   console.log('disconnected');
-});
-
-const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => {
-  console.log(`Store-flow-notifier running on ${PORT}!!`);
 });
 
 amqp.connect(url, function (connectionError, connection) {
