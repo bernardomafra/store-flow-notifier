@@ -36,7 +36,10 @@ io.on('disconnect', () => {
   console.log('disconnected');
 });
 
-httpServer.listen(3030);
+const PORT = process.env.PORT || 3000;
+httpServer.listen(PORT, () => {
+  console.log(`Store-flow-notifier running on ${PORT}!!`);
+});
 
 amqp.connect(url, function (connectionError, connection) {
   if (connectionError) throw connectionError;
