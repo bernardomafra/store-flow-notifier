@@ -11,22 +11,23 @@ const server = express().listen(PORT, () =>
 
 const wss = new Server({ server });
 
+const users = [];
+
+let user = {
+  id: null,
+  socket: null,
+};
+
 try {
-  const users = [];
-
-  let user = {
-    id: null,
-    socket: null,
-  };
-
   wss.on('connection', (socket) => {
-    console.log(socket);
-    const userId = socket.handshake.query.userId;
-    if (userId === user.id) {
-      console.log(`User ${user.id} already connected, skipping...`);
-      user.socket = socket;
-      return;
-    }
+    console.log('Socket client connected: ', socket?.id);
+
+    socket.on('new-user', (socketNewUser) => {
+      if (socketNewUser.id === user.id) {
+        console.log(`User ${user.id} already connected, skipping...`);
+        user.socket = socket;
+      }
+    });
 
     user.id = userId;
     user.socket = socket;
