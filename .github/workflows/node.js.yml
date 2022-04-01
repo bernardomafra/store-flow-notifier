@@ -8,15 +8,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      rabbitmq:
-        image: rabbitmq:3.8
-        env:
-          RABBITMQ_DEFAULT_USER: guest
-          RABBITMQ_DEFAULT_PASS: guest
-        ports:
-          - 5672
-
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js
@@ -29,13 +20,12 @@ jobs:
 
       - name: Run test
         run: npm test
-
-      - name: Create .env file for Dependencies
+        
+      - name: Create env file
         run: |
-          cat >> .env << EOF
-          CLOUDAMQP_URL_IN_SECRETS: ${{ secrets.CLOUDAMQP }}
-          EOF
-          source .env
+          touch .env
+          echo CLOUDAMQP_URL=${{ secrets.CLOUDAMQP_URL }} >> .env
+          cat .env
 
   deploy:
     runs-on: ubuntu-latest
