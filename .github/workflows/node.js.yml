@@ -2,7 +2,6 @@ name: Main
 on:
   push:
     branches: [main]
-  workflow_dispatch:
 
 jobs:
   build:
@@ -20,7 +19,7 @@ jobs:
 
       - name: Run test
         run: npm test
-        
+
       - name: Create env file
         run: |
           touch .env
