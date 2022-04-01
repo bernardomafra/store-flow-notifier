@@ -25,14 +25,12 @@ try {
     socket.on('new-user', (socketNewUser) => {
       if (socketNewUser.id === user.id) {
         console.log(`User ${user.id} already connected, skipping...`);
+        user.id = socketNewUser.id;
         user.socket = socket;
+        users.push(user);
+        console.log('New user connected: ', user.id);
       }
     });
-
-    user.id = userId;
-    user.socket = socket;
-    users.push(user);
-    console.log('New user connected: ', user.id);
 
     socket.on('close', () => console.log('Client disconnected'));
     socket.on('disconnect', () => console.log('socket disconnected'));
