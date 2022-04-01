@@ -1,31 +1,78 @@
 const amqp = require('amqplib/callback_api');
 const url = process.env.CLOUDAMQP_URL || 'amqp://localhost';
 
-function init(error, connection) {
-  if (error) throw error;
+const httpServer = require('http').createServer();
+const io = require('socket.io')(httpServer);
 
-  connection.createChannel(function (channelError, channel) {
-    if (channelError) throw channelError;
+const users = [];
 
-    const queue = 'hello_world';
-    const msg = process.argv.slice(2).join(' ') || 'EMPTY';
+let user = {
+  id: null,
+  socket: null,
+};
 
-    channel.assertQueue(queue, {
+io.on('connection', (socket) => {
+  socket.on('disconnect', () => {
+    console.log('socket disconnected');
+  });
+  socket.on('teste', (t) => {
+    console.log(t);
+  });
+  console.log('connected');
+  const userId = socket.handshake.query.userId;
+  if (userId === user.id) {
+    console.log(`User ${user.id} already connected, skipping...`);
+    user.socket = socket;
+    return;
+  }
+
+  user.id = userId;
+  user.socket = socket;
+  users.push(user);
+  console.log('New user connected: ', user.id);
+});
+
+io.on('disconnect', () => {
+  console.log('disconnected');
+});
+
+httpServer.listen(3030);
+
+amqp.connect(url, function (connectionError, connection) {
+  if (connectionError) throw connectionError;
+
+  console.log('Connected to RabbitMQ');
+
+  connection.createChannel(function (error1, channel) {
+    if (error1) {
+      throw error1;
+    }
+    const queueName = 'store-flow-steps';
+
+    channel.assertQueue(queueName, {
       durable: true,
     });
 
-    channel.sendToQueue(queue, Buffer.from(msg), {
-      persistent: true,
-    });
+    console.log(
+      ' [*] Waiting for messages in queue "%s". To exit press CTRL+C',
+      queueName,
+    );
 
-    console.log(" [x] Sent '%s' to queue '%s", msg, queue);
+    channel.prefetch(1);
 
-    // closeConnection
-    setTimeout(function () {
-      connection.close();
-      process.exit(0);
-    }, 500);
+    channel.consume(
+      queueName,
+      function (msg) {
+        console.log(' [x] Received %s', msg.content.toString());
+        if (user.socket) {
+          console.log(' [x] Emitting %s', msg.content.toString());
+          user.socket.emit('ws_sfa::STEP', msg.content.toString());
+        }
+        setTimeout(() => channel.ack(msg), 500);
+      },
+      {
+        noAck: false,
+      },
+    );
   });
-}
-
-amqp.connect(url, init);
+});
