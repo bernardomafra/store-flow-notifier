@@ -1,7 +1,7 @@
 const amqp = require('amqplib/callback_api');
 const url = process.env.CLOUDAMQP_URL || 'amqp://localhost';
 
-exports.connectAMQP = (user, socket) => {
+exports.connectAMQP = (userId, socket) => {
   try {
     amqp.connect(url, function (connectionError, connection) {
       if (connectionError) throw connectionError;
@@ -29,8 +29,8 @@ exports.connectAMQP = (user, socket) => {
           queueName,
           function (msg) {
             console.log(' [x] Received %s', msg.content.toString());
-            console.log('user: ', user.id);
-            if (user.socket) {
+            console.log('user: ', userId);
+            if (socket) {
               console.log(' [x] Emitting %s', msg.content.toString());
               const messageBufferInJSON = JSON.parse(msg.content.toString());
 
@@ -39,7 +39,7 @@ exports.connectAMQP = (user, socket) => {
                 ...messageBufferInJSON,
               };
               console.log('done: ', messageBufferInJSON);
-              user.socket.send(JSON.stringify(data));
+              socket.emit('step', JSON.stringify(data));
             }
             setTimeout(() => channel.ack(msg), 500);
           },
