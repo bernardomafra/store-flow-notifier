@@ -31,15 +31,9 @@ exports.connectAMQP = (userId, socket) => {
             console.log(' [x] Received %s', msg.content.toString());
             console.log('user: ', userId);
             if (socket) {
-              console.log(' [x] Emitting %s', msg.content.toString());
+              console.log(' [x] (step) Emitting %s', msg.content.toString());
               const messageBufferInJSON = JSON.parse(msg.content.toString());
-
-              const data = {
-                type: 'new-step',
-                ...messageBufferInJSON,
-              };
-              console.log('done: ', messageBufferInJSON);
-              socket.emit('step', JSON.stringify(data));
+              socket.emit('step', messageBufferInJSON);
             }
             setTimeout(() => channel.ack(msg), 500);
           },
