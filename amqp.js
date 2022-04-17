@@ -7,6 +7,7 @@ module.exports = class AMQP {
 
   static connect(userId, socket) {
     if (this.connected || this.userId === userId) {
+      this.socket = socket;
       return;
     }
 
@@ -46,10 +47,10 @@ module.exports = class AMQP {
             (msg) => {
               console.log(' [x] Received %s', msg.content.toString());
               console.log('user: ', this.userId);
-              if (socket) {
+              if (this.socket) {
                 console.log(' [x] (step) Emitting %s', msg.content.toString());
                 const messageBufferInJSON = JSON.parse(msg.content.toString());
-                socket.emit('step', messageBufferInJSON);
+                this.socket.emit('step', messageBufferInJSON);
               }
               setTimeout(() => channel.ack(msg), 500);
             },
