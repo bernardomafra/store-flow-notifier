@@ -14,7 +14,7 @@ module.exports = class AMQP {
     this.socket = socket;
 
     try {
-      amqp.connect(url, function (connectionError, connection) {
+      amqp.connect(url, (connectionError, connection) => {
         if (connectionError) {
           this.connected = false;
           throw connectionError;
@@ -22,7 +22,7 @@ module.exports = class AMQP {
 
         console.log('Connected to RabbitMQ');
 
-        connection.createChannel(function (error1, channel) {
+        connection.createChannel((error1, channel) => {
           if (error1) {
             this.connected = false;
             throw error1;
@@ -43,7 +43,7 @@ module.exports = class AMQP {
 
           channel.consume(
             queueName,
-            function (msg) {
+            (msg) => {
               console.log(' [x] Received %s', msg.content.toString());
               console.log('user: ', this.userId);
               if (socket) {
