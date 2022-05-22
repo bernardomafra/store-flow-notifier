@@ -7,6 +7,7 @@ module.exports = class AMQP {
 
   static connect(userId, socket) {
     if (this.connected || this.userId === userId) {
+      console.log('Already connected');
       this.socket = socket;
       return;
     }
@@ -18,6 +19,7 @@ module.exports = class AMQP {
       amqp.connect(url, (connectionError, connection) => {
         if (connectionError) {
           this.connected = false;
+          console.log('AMQP connection error:', connectionError);
           throw connectionError;
         }
 
